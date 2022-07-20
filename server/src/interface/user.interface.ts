@@ -9,7 +9,7 @@ export class User extends Document {
     description: '用户手机号',
     example: '1780000000',
   })
-  readonly telephone: string;
+  readonly phone: string;
 
   @Prop()
   @ApiProperty({
@@ -17,4 +17,7 @@ export class User extends Document {
     example: '123456',
   })
   readonly password: string;
+
+  @Prop()
+  readonly salt?: string;
 }
