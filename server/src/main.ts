@@ -21,6 +21,10 @@ async function bootstrap() {
     .setTitle('nest后台服务Api')
     .setDescription('这里是描述XXXXX')
     .setVersion('1.0')
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      'jwt',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

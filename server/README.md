@@ -530,5 +530,160 @@ $ yarn add -D @types/bcrypt
 $ nest g gu auth
 ```
 
+### 10、jwt身份认证及登录
 
++ 安装依赖包
+
+```bash
+$ yarn add --save @nestjs/jwt passport-jwt @types/passport-jwt
+```
+
++ 输入命令行，生成权限模块文件
+
+```bash
+$ nest g mo auth
+$ nest g service auth
+$ nest g co auth
+```
+
++ 在auth.module.ts文件中，引入UserService
+
+```tsx
+...
+import { UserService } from 'src/modules/user/user.service';
+
+@Module({
+  providers: [AuthService, UserService],
+  controllers: [AuthController],
+})
+...
+```
+
++ 在auth.service.ts文件中，编写用户登录方法
+
+```tsx
+import { Injectable } from '@nestjs/common';
+import { IResponse } from 'src/interface/response.interface';
+import { User } from 'src/interface/user.interface';
+import { UserService } from 'src/modules/user/user.service';
+import * as bcrypt from 'bcrypt';
+
+@Injectable()
+export class AuthService {
+  private response: IResponse;
+  constructor(
+    private readonly userService: UserService,
+  ) {}
+
+  /**
+   * @description 用户登录验证
+   * @param {User} user
+   */
+  private async validateUser(user: User) {
+    const phone: string = user.phone;
+    const password: string = user.password;
+    return await this.userService
+      .findOneByPhone(phone)
+      .then((res) => {
+        if (res.length === 0) {
+          this.response = {
+            code: 3,
+            msg: '用户尚未注册',
+          };
+          throw this.response;
+        }
+        return res[0];
+      })
+      .then((user: User) => {
+        const isPasswordValid = bcrypt.compareSync(password, user.password);
+        if (isPasswordValid) {
+          return (this.response = {
+            code: 0,
+            msg: '登录成功',
+          });
+        } else {
+          this.response = {
+            code: 4,
+            msg: '用户密码错误',
+          };
+          throw this.response;
+        }
+      })
+      .catch((err) => {
+        return err;
+      });
+  }
+
+  /**
+   * @description 用户登录方法
+   * @param {User} user
+   */
+  public async login(user: User) {
+    return await this.validateUser(user);
+  }
+}
+```
+
++ 在auth.controller.ts文件中实现方法调用
+
+```tsx
+import { AuthService } from './auth.service';
+import { Body, Controller, Post } from '@nestjs/common';
+import { User } from 'src/interface/user.interface';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+
+@Controller('auth')
+@ApiTags('用户验证模块')
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
+  @Post('login')
+  @ApiOperation({
+    summary: '用户登录',
+  })
+  public async userLogin(@Body() userDto: User) {
+    return await this.authService.login(userDto);
+  }
+}
+```
+
++ 将用户注册方法从modules/user文件中提取到权限模块文件中，详见代码
++ 新建jwt.constant.ts文件，存放jwt常量
+
+```tsx
+export const jwtConstants = {
+  secret: 'secretKey',
+};
+```
+
++ 安装依赖
+
+```bash
+$ yarn add @nestjs/passport passport passport-local @types/passport-local
+```
+
++ 新建jwt.strategy.ts文件，实现Passport JWT
+
+```tsx
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { PassportStrategy } from '@nestjs/passport';
+import { Injectable } from '@nestjs/common';
+import { jwtConstants } from './jwt.constant';
+import { User } from 'src/interface/user.interface';
+
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor() {
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
+      secretOrKey: jwtConstants.secret,
+    });
+  }
+
+  async validate(payload: User) {
+    return { userId: payload._id };
+  }
+}
+```
 
