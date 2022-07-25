@@ -60,6 +60,24 @@ export class AuthService {
   }
 
   /**
+   * @description 用户密码修改方法
+   * @param {User} user
+   * @return {*}
+   */
+  public async alter(user: User) {
+    return this.userService.findOneByPhone(user.phone).then(async () => {
+      return await this.userModule
+        .updateOne({ phone: user.phone }, { $set: user })
+        .then(() => {
+          return (this.response = {
+            code: 0,
+            msg: '用户修改成功',
+          });
+        });
+    });
+  }
+
+  /**
    * @description 用户登录验证
    * @param {User} user
    */

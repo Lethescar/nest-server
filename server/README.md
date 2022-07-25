@@ -687,3 +687,297 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 }
 ```
 
++ 进入auth.module.ts文件，引入jwt模块并提供策略
+
+```tsx
+import { JwtStrategy } from './jwt.strategy';
+import { jwtConstants } from './jwt.constant';
+import { Module } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';
+import { UserService } from 'src/modules/user/user.service';
+import { JwtModule } from '@nestjs/jwt';
+
+@Module({
+  imports: [
+    // 引入jwt模块
+    JwtModule.register({
+      secret: jwtConstants.secret,
+    }),
+  ],
+  providers: [AuthService, UserService, JwtStrategy], // 提供jwt策略
+  controllers: [AuthController],
+})
+export class AuthModule {}
+```
+
++ 进入auth.service.ts 文件
+
+  + 创建token方法
+
+  ```tsx
+  ...
+  import { JwtService } from '@nestjs/jwt';
+  
+  @Injectable()
+  export class AuthService {
+    ...
+    constructor(
+      ...
+      private readonly jwtService: JwtService,
+    ) {}
+    ...
+    private async createToken(user: User) {
+      return await this.jwtService.sign(user);
+    }
+  }
+  ```
+
+  + 完善登录方法
+
+  ```tsx
+    /**
+     * @description 用户登录验证
+     */
+    private async validateUser(user: User) {
+      const phone: string = user.phone;
+      const password: string = user.password;
+      return await this.userService
+        .findOneByPhone(phone)
+        .then((res) => {
+          if (res.length === 0) {
+            this.response = {
+              code: 3,
+              msg: '用户尚未注册',
+            };
+            throw this.response;
+          }
+          return res[0];
+        })
+        .then((user: User) => {
+          const isPasswordValid = bcrypt.compareSync(password, user.password);
+          if (isPasswordValid) {
+            return (this.response = {
+              code: 0,
+              msg: { id: user._id },
+            });
+          } else {
+            this.response = {
+              code: 4,
+              msg: '用户密码错误',
+            };
+            throw this.response;
+          }
+        })
+        .catch((err) => {
+          return err;
+        });
+    }
+  
+    /**
+     * @description 用户登录方法
+     * @param {User} user
+     */
+    public async login(user: User) {
+      return await this.validateUser(user)
+        .then(async (res: IResponse) => {
+          if (res.code !== 0) {
+            this.response = res;
+            throw this.response;
+          }
+          const userId = res.msg.id;
+          this.response = {
+            code: 0,
+            msg: { token: await this.createToken(user), userId },
+          };
+          return this.response;
+        })
+        .catch((err) => {
+          return err;
+        });
+    }
+  ```
+
++ 接口需要用jwt守卫，使用守卫需要用到装饰器，而装饰器需要通过AuthGuard进行守卫，与之前自定义的AuthGuard冲突，需删除项目文件中有关AuthGuard的代码（user.controller.ts、user.module.ts），修改后代码如下
+
+```tsx
+import { UserService } from './user.service';
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Role } from '../role/role.decorator';
+import { AuthGuard } from '@nestjs/passport';
+
+@Controller('user')
+@ApiTags('用户模块')
+@UseGuards(AuthGuard('jwt'))
+export class UserController {
+  constructor(private userService: UserService) {}
+
+  @Get('hello')
+  @Role('admin')
+  async hello() {
+    return 'hello world!';
+  }
+}
+```
+
+### 11、实现swagger设置请求头
+
++ 修改main.ts
+
+```tsx
+// 添加addBearerAuth方法
+const config = new DocumentBuilder()
+  .setTitle('nest后台服务Api')
+  .setDescription('这里是描述XXXXX')
+  .setVersion('1.0')
+  .addBearerAuth(
+    { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+    'jwt',
+  )
+  .build();
+```
+
++ 修改user.controller.ts
+
+```tsx
+...
+@Controller('user')
+...
+// 添加该方法  'jwt'  需与main文件中的文件一致
+@ApiBearerAuth('jwt')
+export class UserController {
+  ...
+}
+```
+
+### 12、集成Redis
+
++ 下载redis客户端
+
+  地址：https://github.com/microsoftarchive/redis/releases
+
++ 安装依赖
+
+```bash
+$ yarn add nestjs-redis
+```
+
++ app.module.ts文件引入
+
+```tsx
+...
+import { RedisModule, RedisModuleOptions } from 'nestjs-redis';
+
+const options: RedisModuleOptions = {
+  host: '127.0.0.1',
+  port: 6379,
+};
+
+@Module({
+  imports: [
+    DbModule,
+    UserModule,
+    Log4jsModule.forRoot(),
+    AuthModule,
+    RedisModule.register(options),
+  ],
+  ...
+})
+```
+
++ 使用方法(user模块使用)
+
+```tsx
+// user.service.ts
+...
+import { RedisService } from 'nestjs-redis';
+import { Redis } from 'ioredis';
+
+@Injectable()
+export class UserService {
+  private redis: Redis;
+  constructor(
+    ...
+    private readonly redisService: RedisService,
+  ) {
+    this.redis = this.redisService.getClient();
+  }
+
+  ...
+  public async hello() {
+    return await this.redis.set('management', 'hello world!');
+  }
+}
+
+// user.controller.ts 即实现swagger调用触发调用hello接口
+...
+@Controller('user')
+@ApiTags('用户模块')
+// @UseGuards(AuthGuard('jwt'))
+@ApiBearerAuth('jwt')
+export class UserController {
+  constructor(private userService: UserService) {}
+
+  @Get('hello')
+  @Role('admin')
+  async hello() {
+    // return 'hello world!';
+    return await this.userService.hello();
+  }
+}
+```
+
+### 13、用户密码修改接口
+
++ auth.service.ts
+
+```tsx
+  public async alter(user: User) {
+    return this.userService.findOneByPhone(user.phone).then(async () => {
+      return await this.userModule
+        .updateOne({ phone: user.phone }, { $set: user })
+        .then(() => {
+          return (this.response = {
+            code: 0,
+            msg: '用户修改成功',
+          });
+        });
+    });
+  }
+```
+
++ auth.controller.ts
+
+```tsx
+  @Post('alter')
+  @ApiOperation({
+    summary: '用户密码修改接口',
+  })
+  async alterUser(@Body() userDto: User) {
+    return await this.authService.alter(userDto);
+  }
+```
+
++ auth.module.ts
+
+```tsx
+...
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+...
+import { EncryptMiddleware } from 'src/middleware/encrypt.middleware';
+
+@Module({
+  ...
+})
+export class AuthModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(EncryptMiddleware).forRoutes('auth/register', 'auth/alter'); // 标明只在用户注册时生效
+  }
+}
+```
+
+
+
+
+

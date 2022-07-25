@@ -7,8 +7,4 @@ import { EncryptMiddleware } from 'src/middleware/encrypt.middleware';
   providers: [UserService],
   controllers: [UserController],
 })
-export class UserModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(EncryptMiddleware).forRoutes('user/register'); // 标明只在用户注册时生效
-  }
-}
+export class UserModule {}

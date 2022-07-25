@@ -23,4 +23,12 @@ export class AuthController {
   public async userLogin(@Body() userDto: User) {
     return await this.authService.login(userDto);
   }
+
+  @Post('alter')
+  @ApiOperation({
+    summary: '用户密码修改接口',
+  })
+  async alterUser(@Body() userDto: User) {
+    return await this.authService.alter(userDto);
+  }
 }
