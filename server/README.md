@@ -1,26 +1,22 @@
-## server启动
+## server 启动
 
 ```bash
 $ yarn add .
 $ npm run start -w
 ```
 
-
-
-| 文件名            | 文件描述                                                     |
-| ----------------- | ------------------------------------------------------------ |
-| app.controller.ts | 常见功能是用来处理 http 请求以及调用 service 层的处理方法    |
-| app.module.ts     | 根模块用于处理其他类的引用与共享                             |
+| 文件名            | 文件描述                                                                 |
+| ----------------- | ------------------------------------------------------------------------ |
+| app.controller.ts | 常见功能是用来处理 http 请求以及调用 service 层的处理方法                |
+| app.module.ts     | 根模块用于处理其他类的引用与共享                                         |
 | app.service.ts    | 封装通用的业务逻辑、与数据层的交互（例如数据库）、其他额外的一些三方请求 |
-| main.ts           | 应用程序入口文件。它使用 NestFactory 用来创建 Nest 应用实例  |
-
-
+| main.ts           | 应用程序入口文件。它使用 NestFactory 用来创建 Nest 应用实例              |
 
 ## 步骤
 
 ### 1、搭建服务项目
 
-+ 全局安装nestjs
+- 全局安装 nestjs
 
 ```bash
 # yarn 安装
@@ -29,36 +25,36 @@ $ yarn global add @nestjs/cli
 $ npm i -g @nestjs/cli
 ```
 
-+ 创建nest项目
+- 创建 nest 项目
 
 ```bash
 $ nest new project-name
 ```
 
-### 2、nestjs配置swagger
+### 2、nestjs 配置 swagger
 
-+ 安装swagger
+- 安装 swagger
 
   ```bash
   $ yarn add @nestjs/swagger
   ```
 
-+ 在main.ts文件中引入配置
+- 在 main.ts 文件中引入配置
 
   ```ts
   import { NestFactory } from '@nestjs/core';
   import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
   import { AppModule } from './app.module';
-  
+
   const listenPort = 3000;
   const logger = new Logger('main.ts');
-  
+
   /**
    * @description 主方法
    */
   async function bootstrap() {
     const app = await NestFactory.create(AppModule);
-  
+
     /**
      * 配置swagger
      */
@@ -67,10 +63,10 @@ $ nest new project-name
       .setDescription('描述XXXXX')
       .setVersion('1.0')
       .build();
-  
+
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('swagger-ui', app, document);
-  
+
     await app.listen(listenPort);
   }
   bootstrap().then(() => {
@@ -80,48 +76,48 @@ $ nest new project-name
   });
   ```
 
-### 3、安装mongodb
+### 3、安装 mongodb
 
-+ 下载地址： https://www.mongodb.com/try/download/community
+- 下载地址： https://www.mongodb.com/try/download/community
 
-### 4、mongodb管理系统
+### 4、mongodb 管理系统
 
-+ git地址：https://github.com/mrvautin/adminMongo
+- git 地址：https://github.com/mrvautin/adminMongo
 
-+ 拷贝到本地
+- 拷贝到本地
 
-+ 安装依赖 启动
+- 安装依赖 启动
 
   ```bash
   $ yarn add .
   $ npm run start
   ```
 
-+ 创建自己的数据库表
-  
-  Connection name：数据库名   例： db
-  Connection string：数据库地址   例：mongodb:127.0.0.1:27017
-  Connection options：参数    可不填
-  
-  点击Add connection 按钮  即添加成功
+- 创建自己的数据库表
 
-### 5、nest服务连接mongodb数据库
+  Connection name：数据库名 例： db
+  Connection string：数据库地址 例：mongodb:127.0.0.1:27017
+  Connection options：参数 可不填
 
-+ 安装依赖
+  点击 Add connection 按钮 即添加成功
+
+### 5、nest 服务连接 mongodb 数据库
+
+- 安装依赖
 
 ```bash
 $ yarn add @nestjs/mongoose mongoose
 ```
 
-#### (1)把数据库相关封装成独立模块(此处以用户user为例说明)
+#### (1)把数据库相关封装成独立模块(此处以用户 user 为例说明)
 
-+ 在src文件夹下生成db模块，可通过命令行实现；即会生成db.module.ts文件
+- 在 src 文件夹下生成 db 模块，可通过命令行实现；即会生成 db.module.ts 文件
 
 ```bash
 $ nest g mo db
 ```
 
-+ 在db.module.ts文件中引入配置
+- 在 db.module.ts 文件中引入配置
 
 ```ts
 import { Global, Module } from '@nestjs/common';
@@ -147,15 +143,15 @@ const MONGO_MODELS = MongooseModule.forFeature([
 export class DbModule {}
 ```
 
-+ 创建 **用户Schema** 对照表，标明 表下 拥有的内容
+- 创建 **用户 Schema** 对照表，标明 表下 拥有的内容
 
-  + 在src下新建interface文件夹，并新建user.interface.ts文件
+  - 在 src 下新建 interface 文件夹，并新建 user.interface.ts 文件
 
   ```ts
   import { Prop, Schema } from '@nestjs/mongoose';
   import { ApiProperty } from '@nestjs/swagger';
   import { Document } from 'mongoose';
-  
+
   @Schema()
   export class User extends Document {
     @Prop()
@@ -164,7 +160,7 @@ export class DbModule {}
       example: '1780000000',
     })
     readonly phone: string;
-  
+
     @Prop()
     @ApiProperty({
       description: '用户密码',
@@ -174,7 +170,7 @@ export class DbModule {}
   }
   ```
 
-+ 在db文件夹中创建schema文件夹，并新建 **user.schema.ts** 文件，**将 class 语法转换为 Mongoose schema 语法并导出**
+- 在 db 文件夹中创建 schema 文件夹，并新建 **user.schema.ts** 文件，**将 class 语法转换为 Mongoose schema 语法并导出**
 
 ```ts
 import { User } from 'src/interface/user.interface';
@@ -183,7 +179,7 @@ import { SchemaFactory } from '@nestjs/mongoose';
 export const UserSchema = SchemaFactory.createForClass(User);
 ```
 
-+ 在db.module.ts文件中添加配置
+- 在 db.module.ts 文件中添加配置
 
 ```tsx
 ...
@@ -208,10 +204,10 @@ const MONGO_MODELS = MongooseModule.forFeature([
 ...
 ```
 
-#### (2)编写接口(此处以用户user为例说明)
+#### (2)编写接口(此处以用户 user 为例说明)
 
-+ 新建modules文件夹
-+ 在终端输入命令，即会生成user文件夹以及user.module.ts、user.service.ts、user.controller.ts文件
+- 新建 modules 文件夹
+- 在终端输入命令，即会生成 user 文件夹以及 user.module.ts、user.service.ts、user.controller.ts 文件
 
 ```bash
 $ nest g mo user
@@ -219,9 +215,9 @@ $ nest g service user
 $ nest g co user
 ```
 
-+ 将user文件夹移动至modules文件夹中
+- 将 user 文件夹移动至 modules 文件夹中
 
-+ 在user.service.ts文件中编写主要业务逻辑代码
+- 在 user.service.ts 文件中编写主要业务逻辑代码
 
 ```tsx
 import { User } from 'src/interface/user.interface';
@@ -268,7 +264,7 @@ export class UserService {
 }
 ```
 
-+ 在user.cotroller.ts中处理 http 请求以及调用 service 层的处理方法
+- 在 user.cotroller.ts 中处理 http 请求以及调用 service 层的处理方法
 
 ```tsx
 import { UserService } from './user.service';
@@ -285,21 +281,21 @@ export class UserController {
   @ApiOperation({
     summary: '用户注册',
   })
-  async registerUser(@Body() userDto: User) {
+  async registerUser(@Body() userDto: Register) {
     return await this.userService.register(userDto);
   }
 }
 ```
 
-### 6、配置Log4js日志打印(可不配置)
+### 6、配置 Log4js 日志打印(可不配置)
 
-+ 安装依赖
+- 安装依赖
 
 ```bash
 $ yarn add @nestx-log4js/core
 ```
 
-+ 在app.module.ts中导入模块
+- 在 app.module.ts 中导入模块
 
 ```tsx
 import { Log4jsModule } from '@nestx-log4js/core';
@@ -311,7 +307,7 @@ import { Log4jsModule } from '@nestx-log4js/core';
 })
 ```
 
-+ 在main.ts中调用
+- 在 main.ts 中调用
 
 ```tsx
 import { Log4jsLogger } from '@nestx-log4js/core';
@@ -321,14 +317,14 @@ app.useLogger(app.get(Log4jsLogger));
 
 ### 7、中间件使用
 
-+ 新建middleware文件夹
-+ 执行命令行，生成文件(加密中间件)，将其移动至middleware文件夹
+- 新建 middleware 文件夹
+- 执行命令行，生成文件(加密中间件)，将其移动至 middleware 文件夹
 
 ```bash
 $ nest g mi encrypt
 ```
 
-+ 进入encrypt.middleware.ts文件，修改参数类型
+- 进入 encrypt.middleware.ts 文件，修改参数类型
 
 ```tsx
 import { Injectable, NestMiddleware } from '@nestjs/common';
@@ -343,7 +339,7 @@ export class EncryptMiddleware implements NestMiddleware {
 }
 ```
 
-+ 在user.module.ts文件中配置，使UserModule实现NestModule，监听中间件
+- 在 user.module.ts 文件中配置，使 UserModule 实现 NestModule，监听中间件
 
 ```
 export class UserModule implements NestModule {
@@ -355,18 +351,18 @@ export class UserModule implements NestModule {
 }
 ```
 
-### 8、bcrypt加密
+### 8、bcrypt 加密
 
-+ 安装依赖
+- 安装依赖
 
 ```bash
 $ yarn add bcrypt
 $ yarn add -D @types/bcrypt
 ```
 
-+ 新建或修改以下文件
+- 新建或修改以下文件
 
-  + src/interface/response.interface.ts(新建)
+  - src/interface/response.interface.ts(新建)
 
   ```tsx
   /**
@@ -381,7 +377,7 @@ $ yarn add -D @types/bcrypt
   }
   ```
 
-  + src/interface/user.interface.ts(修改)
+  - src/interface/user.interface.ts(修改)
 
   ```tsx
   ...
@@ -392,13 +388,13 @@ $ yarn add -D @types/bcrypt
   }
   ```
 
-  + src/middleware/encrypt.middleware.ts(修改)
+  - src/middleware/encrypt.middleware.ts(修改)
 
   ```tsx
   import { Injectable, NestMiddleware } from '@nestjs/common';
   import { NextFunction } from 'express';
   import { handleEncrypt, setSalt } from 'src/utils/encrypt';
-  
+
   @Injectable()
   export class EncryptMiddleware implements NestMiddleware {
     use(req: Request, res: Response, next: NextFunction) {
@@ -414,7 +410,7 @@ $ yarn add -D @types/bcrypt
   }
   ```
 
-  + src/modules/user/user.module.ts(修改)
+  - src/modules/user/user.module.ts(修改)
 
   ```tsx
   ...
@@ -427,7 +423,7 @@ $ yarn add -D @types/bcrypt
   }
   ```
 
-  + src/modules/user/user.service.ts(**修改-主要**)
+  - src/modules/user/user.service.ts(**修改-主要**)
 
   ```tsx
   import { User } from 'src/interface/user.interface';
@@ -435,7 +431,7 @@ $ yarn add -D @types/bcrypt
   import { InjectModel } from '@nestjs/mongoose';
   import { Model } from 'mongoose';
   import { IResponse } from 'src/interface/response.interface';
-  
+
   const logger = new Logger('user.service.ts');
   @Injectable()
   export class UserService {
@@ -484,7 +480,7 @@ $ yarn add -D @types/bcrypt
           return this.response;
         });
     }
-  
+
     /**
      * @description 通过手机号查找用户
      * @date 20/07/2022
@@ -501,18 +497,18 @@ $ yarn add -D @types/bcrypt
   }
   ```
 
-  + 新建utils文件夹，并新建encrypt.ts文件
+  - 新建 utils 文件夹，并新建 encrypt.ts 文件
 
   ```tsx
   import * as bcrypt from 'bcrypt';
-  
+
   /**
    * @description 设置盐并返回
    */
   export function setSalt(saltRounds: number): string {
     return bcrypt.genSaltSync(saltRounds);
   }
-  
+
   /**
    * @description 密码加密并返回
    */
@@ -524,21 +520,21 @@ $ yarn add -D @types/bcrypt
 
 ### 9、权限守卫
 
-+ 新建guard文件夹并执行命令行，生成auth.guard.ts文件，将其移动至guard文件夹内
+- 新建 guard 文件夹并执行命令行，生成 auth.guard.ts 文件，将其移动至 guard 文件夹内
 
 ```bash
 $ nest g gu auth
 ```
 
-### 10、jwt身份认证及登录
+### 10、jwt 身份认证及登录
 
-+ 安装依赖包
+- 安装依赖包
 
 ```bash
 $ yarn add --save @nestjs/jwt passport-jwt @types/passport-jwt
 ```
 
-+ 输入命令行，生成权限模块文件
+- 输入命令行，生成权限模块文件
 
 ```bash
 $ nest g mo auth
@@ -546,7 +542,7 @@ $ nest g service auth
 $ nest g co auth
 ```
 
-+ 在auth.module.ts文件中，引入UserService
+- 在 auth.module.ts 文件中，引入 UserService
 
 ```tsx
 ...
@@ -559,7 +555,7 @@ import { UserService } from 'src/modules/user/user.service';
 ...
 ```
 
-+ 在auth.service.ts文件中，编写用户登录方法
+- 在 auth.service.ts 文件中，编写用户登录方法
 
 ```tsx
 import { Injectable } from '@nestjs/common';
@@ -571,9 +567,7 @@ import * as bcrypt from 'bcrypt';
 @Injectable()
 export class AuthService {
   private response: IResponse;
-  constructor(
-    private readonly userService: UserService,
-  ) {}
+  constructor(private readonly userService: UserService) {}
 
   /**
    * @description 用户登录验证
@@ -624,7 +618,7 @@ export class AuthService {
 }
 ```
 
-+ 在auth.controller.ts文件中实现方法调用
+- 在 auth.controller.ts 文件中实现方法调用
 
 ```tsx
 import { AuthService } from './auth.service';
@@ -647,8 +641,8 @@ export class AuthController {
 }
 ```
 
-+ 将用户注册方法从modules/user文件中提取到权限模块文件中，详见代码
-+ 新建jwt.constant.ts文件，存放jwt常量
+- 将用户注册方法从 modules/user 文件中提取到权限模块文件中，详见代码
+- 新建 jwt.constant.ts 文件，存放 jwt 常量
 
 ```tsx
 export const jwtConstants = {
@@ -656,13 +650,13 @@ export const jwtConstants = {
 };
 ```
 
-+ 安装依赖
+- 安装依赖
 
 ```bash
 $ yarn add @nestjs/passport passport passport-local @types/passport-local
 ```
 
-+ 新建jwt.strategy.ts文件，实现Passport JWT
+- 新建 jwt.strategy.ts 文件，实现 Passport JWT
 
 ```tsx
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -687,7 +681,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 }
 ```
 
-+ 进入auth.module.ts文件，引入jwt模块并提供策略
+- 进入 auth.module.ts 文件，引入 jwt 模块并提供策略
 
 ```tsx
 import { JwtStrategy } from './jwt.strategy';
@@ -711,14 +705,14 @@ import { JwtModule } from '@nestjs/jwt';
 export class AuthModule {}
 ```
 
-+ 进入auth.service.ts 文件
+- 进入 auth.service.ts 文件
 
-  + 创建token方法
+  - 创建 token 方法
 
   ```tsx
   ...
   import { JwtService } from '@nestjs/jwt';
-  
+
   @Injectable()
   export class AuthService {
     ...
@@ -733,7 +727,7 @@ export class AuthModule {}
   }
   ```
 
-  + 完善登录方法
+  - 完善登录方法
 
   ```tsx
     /**
@@ -773,7 +767,7 @@ export class AuthModule {}
           return err;
         });
     }
-  
+
     /**
      * @description 用户登录方法
      * @param {User} user
@@ -798,7 +792,7 @@ export class AuthModule {}
     }
   ```
 
-+ 接口需要用jwt守卫，使用守卫需要用到装饰器，而装饰器需要通过AuthGuard进行守卫，与之前自定义的AuthGuard冲突，需删除项目文件中有关AuthGuard的代码（user.controller.ts、user.module.ts），修改后代码如下
+- 接口需要用 jwt 守卫，使用守卫需要用到装饰器，而装饰器需要通过 AuthGuard 进行守卫，与之前自定义的 AuthGuard 冲突，需删除项目文件中有关 AuthGuard 的代码（user.controller.ts、user.module.ts），修改后代码如下
 
 ```tsx
 import { UserService } from './user.service';
@@ -821,9 +815,9 @@ export class UserController {
 }
 ```
 
-### 11、实现swagger设置请求头
+### 11、实现 swagger 设置请求头
 
-+ 修改main.ts
+- 修改 main.ts
 
 ```tsx
 // 添加addBearerAuth方法
@@ -831,14 +825,11 @@ const config = new DocumentBuilder()
   .setTitle('nest后台服务Api')
   .setDescription('这里是描述XXXXX')
   .setVersion('1.0')
-  .addBearerAuth(
-    { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
-    'jwt',
-  )
+  .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'jwt')
   .build();
 ```
 
-+ 修改user.controller.ts
+- 修改 user.controller.ts
 
 ```tsx
 ...
@@ -851,19 +842,19 @@ export class UserController {
 }
 ```
 
-### 12、集成Redis
+### 12、集成 Redis
 
-+ 下载redis客户端
+- 下载 redis 客户端
 
   地址：https://github.com/microsoftarchive/redis/releases
 
-+ 安装依赖
+- 安装依赖
 
 ```bash
 $ yarn add nestjs-redis
 ```
 
-+ app.module.ts文件引入
+- app.module.ts 文件引入
 
 ```tsx
 ...
@@ -886,7 +877,7 @@ const options: RedisModuleOptions = {
 })
 ```
 
-+ 使用方法(user模块使用)
+- 使用方法(user 模块使用)
 
 ```tsx
 // user.service.ts
@@ -930,7 +921,7 @@ export class UserController {
 
 ### 13、用户密码修改接口
 
-+ auth.service.ts
+- auth.service.ts
 
 ```tsx
   public async alter(user: User) {
@@ -947,7 +938,7 @@ export class UserController {
   }
 ```
 
-+ auth.controller.ts
+- auth.controller.ts
 
 ```tsx
   @Post('alter')
@@ -959,7 +950,7 @@ export class UserController {
   }
 ```
 
-+ auth.module.ts
+- auth.module.ts
 
 ```tsx
 ...
@@ -976,8 +967,3 @@ export class AuthModule implements NestModule {
   }
 }
 ```
-
-
-
-
-

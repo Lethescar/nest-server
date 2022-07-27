@@ -91,6 +91,7 @@ export default {
     userName: '账号',
     password: '密码',
     confirmPassword: '确认密码',
+    captcha: '验证码',
     email: '邮箱',
     smsCode: '短信验证码',
     mobile: '手机号码',

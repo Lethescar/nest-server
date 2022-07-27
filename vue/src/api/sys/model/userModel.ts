@@ -2,7 +2,7 @@
  * @description: Login interface parameters
  */
 export interface LoginParams {
-  username: string;
+  phone: string;
   password: string;
 }
 
@@ -35,4 +35,13 @@ export interface GetUserInfoModel {
   avatar: string;
   // 介绍
   desc?: string;
+}
+
+export interface RegisterParams {
+  phone: string;
+  password: string;
+  confirmPassword: string;
+  captcha: string;
+  captchaId: string;
+  policy: Boolean;
 }

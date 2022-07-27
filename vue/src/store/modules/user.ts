@@ -91,8 +91,8 @@ export const useUserStore = defineStore({
       try {
         const { goHome = true, mode, ...loginParams } = params;
         const data = await loginApi(loginParams, mode);
-        // const { token } = data;
-        const token = 'fakeToken1';
+        const { token } = data;
+        // const token = 'fakeToken1';
 
         // save token
         this.setToken(token);
@@ -102,6 +102,7 @@ export const useUserStore = defineStore({
       }
     },
     async afterLoginAction(goHome?: boolean): Promise<GetUserInfoModel | null> {
+      console.log('afterLoginAction');
       if (!this.getToken) return null;
       // get user info
       const userInfo = await this.getUserInfoAction();

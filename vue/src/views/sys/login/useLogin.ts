@@ -63,20 +63,20 @@ export function useFormRules(formData?: Recordable) {
   };
 
   const getFormRules = computed((): { [k: string]: ValidationRule | ValidationRule[] } => {
-    const accountFormRule = unref(getAccountFormRule);
+    // const accountFormRule = unref(getAccountFormRule);
     const passwordFormRule = unref(getPasswordFormRule);
-    const smsFormRule = unref(getSmsFormRule);
+    // const smsFormRule = unref(getSmsFormRule);
     const mobileFormRule = unref(getMobileFormRule);
 
     const mobileRule = {
-      sms: smsFormRule,
-      mobile: mobileFormRule,
+      // sms: smsFormRule,
+      phone: mobileFormRule,
     };
     switch (unref(currentState)) {
       // register form rules
       case LoginStateEnum.REGISTER:
         return {
-          account: accountFormRule,
+          // account: accountFormRule,
           password: passwordFormRule,
           confirmPassword: [
             { validator: validateConfirmPassword(formData?.password), trigger: 'change' },
@@ -88,7 +88,7 @@ export function useFormRules(formData?: Recordable) {
       // reset password form rules
       case LoginStateEnum.RESET_PASSWORD:
         return {
-          account: accountFormRule,
+          // account: accountFormRule,
           ...mobileRule,
         };
 
@@ -99,7 +99,7 @@ export function useFormRules(formData?: Recordable) {
       // login form rules
       default:
         return {
-          account: accountFormRule,
+          // account: accountFormRule,
           password: passwordFormRule,
         };
     }

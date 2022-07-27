@@ -6,11 +6,16 @@ import * as bcrypt from 'bcrypt';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
+import { ifEmpty } from 'src/utils/empty';
 
 const logger = new Logger('auth.service.ts');
+const svgCaptcha = require('svg-captcha');
+
 @Injectable()
 export class AuthService {
   private response: IResponse;
+  private pointer: number = 0;
+  private captcha = {};
   constructor(
     /**
      * 引入model,即db.module.ts中定义的'USER_MODEL' 设置为私有只读 User类型的Model
@@ -82,8 +87,7 @@ export class AuthService {
    * @param {User} user
    */
   private async validateUser(user: User) {
-    const phone: string = user.phone;
-    const password: string = user.password;
+    const { phone, password, username } = user;
     return await this.userService
       .findOneByPhone(phone)
       .then((res) => {
@@ -130,8 +134,10 @@ export class AuthService {
         const userId = res.msg.id;
         this.response = {
           code: 0,
-          msg: { token: await this.createToken(user), userId },
+          data: { token: await this.createToken(user), userId },
+          msg: '登录成功',
         };
+        console.log(this.response);
         return this.response;
       })
       .catch((err) => {
@@ -147,5 +153,38 @@ export class AuthService {
    */
   private async createToken(user: User) {
     return await this.jwtService.sign(user);
+  }
+
+  /**
+   * @description 生成验证码
+   * @param {string} [id]
+   * @return {*}
+   */
+  public async createCaptcha(id?: string) {
+    if (!ifEmpty(id)) {
+      delete this.captcha[id];
+    }
+    const c = svgCaptcha.create();
+    this.captcha[this.pointer] = c.text;
+    this.response = {
+      code: 0,
+      data: {
+        id: this.pointer++,
+        img: c.data,
+      },
+      msg: '',
+    };
+    return this.response;
+  }
+
+  /**
+   * @description 验证码验证
+   */
+  public async validateCode(code: string, id: string) {
+    this.response =
+      this.captcha[id].toLocaleLowerCase() === code.toLocaleLowerCase()
+        ? { code: 0, msg: '验证码正确' }
+        : { code: 5, msg: '验证码错误' };
+    return this.response;
   }
 }

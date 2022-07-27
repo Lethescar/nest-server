@@ -4,7 +4,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { Log4jsLogger } from '@nestx-log4js/core';
 
-const listenPort = 3000;
+const listenPort = 3200;
 const logger = new Logger('main.ts');
 
 /**
@@ -34,6 +34,11 @@ async function bootstrap() {
    * 使用log4js 日志框架
    */
   app.useLogger(app.get(Log4jsLogger));
+
+  /**
+   * @description 允许跨域
+   */
+  app.enableCors();
   await app.listen(listenPort);
 }
 bootstrap().then(() => {

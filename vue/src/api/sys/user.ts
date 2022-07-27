@@ -1,14 +1,17 @@
 import { defHttp } from '/@/utils/http/axios';
-import { LoginParams, LoginResultModel, GetUserInfoModel } from './model/userModel';
+import { LoginParams, LoginResultModel, GetUserInfoModel, RegisterParams } from './model/userModel';
 
 import { ErrorMessageMode } from '/#/axios';
 
 enum Api {
-  Login = '/login',
+  Login = '/auth/login',
   Logout = '/logout',
-  GetUserInfo = '/getUserInfo',
+  GetUserInfo = '/auth/getUserInfo',
   GetPermCode = '/getPermCode',
   TestRetry = '/testRetry',
+  Register = '/auth/register',
+  Captcha = '/auth/captcha/',
+  ValidateCaptcha = '/auth/validateCode',
 }
 
 /**
@@ -52,4 +55,16 @@ export function testRetry() {
       },
     },
   );
+}
+
+export function register(params: RegisterParams) {
+  return defHttp.post({ url: Api.Register, params });
+}
+
+export function captcha(id?: string) {
+  return defHttp.get({ url: Api.Captcha + id });
+}
+
+export function validateCode(params) {
+  return defHttp.post({ url: Api.ValidateCaptcha, params });
 }
